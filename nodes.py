@@ -15,6 +15,7 @@ MLX_DGEMMA_MODEL = "MLX_DGEMMA_MODEL"
 MLX_DGEMMA_CANVAS_STATE = "MLX_DGEMMA_CANVAS_STATE"
 MLX_DGEMMA_TRACE = "MLX_DGEMMA_TRACE"
 MLX_DGEMMA_RUN_METADATA = "MLX_DGEMMA_RUN_METADATA"
+MLX_DGEMMA_REG_CONTROL_MEMORY = "REG_CONTROL_MEMORY"
 
 
 def _parse_hidden_layers(value: str) -> list[int]:
@@ -29,6 +30,18 @@ def _parse_hidden_layers(value: str) -> list[int]:
     if any(layer < 0 or layer > 29 for layer in layers):
         raise ValueError("hidden_layers must be between 0 and 29")
     return sorted(layers)
+
+
+def _serialize_reg_control_memory(value: Any) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if hasattr(value, "as_dict"):
+        value = value.as_dict()
+    if not isinstance(value, dict):
+        raise ValueError("reg_control_memory must be a REG control-memory object")
+    if value.get("schema_version") != "reg-control-memory/v2":
+        raise ValueError("reg_control_memory must use schema reg-control-memory/v2")
+    return value
 
 
 class MLXDGemmaLoader:
@@ -75,8 +88,8 @@ class MLXDGemmaLoader:
 
 class MLXDGemmaSampler:
     DESCRIPTION = (
-        "Runs MLX DiffusionGemma through the loopback sidecar and returns text, "
-        "canvas state, decoded denoising frames, and selected hidden-layer traces."
+        "Runs MLX DiffusionGemma through the loopback sidecar with optional "
+        "REG denoising-time logit guidance."
     )
 
     @classmethod
@@ -125,7 +138,10 @@ class MLXDGemmaSampler:
                     "INT",
                     {"default": 600, "min": 5, "max": 21600},
                 ),
-            }
+            },
+            "optional": {
+                "reg_control_memory": (MLX_DGEMMA_REG_CONTROL_MEMORY,),
+            },
         }
 
     RETURN_TYPES = (
@@ -156,10 +172,12 @@ class MLXDGemmaSampler:
         hidden_layers: str,
         sampler: str,
         timeout_seconds: int,
+        reg_control_memory: Any | None = None,
     ):
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
         layers = _parse_hidden_layers(hidden_layers)
+        serialized_reg_control_memory = _serialize_reg_control_memory(reg_control_memory)
         payload = {
             "prompt": prompt,
             "seed": seed,
@@ -173,6 +191,8 @@ class MLXDGemmaSampler:
             "hidden_layers": layers,
             "sampler": sampler,
         }
+        if serialized_reg_control_memory is not None:
+            payload["reg_control_memory"] = serialized_reg_control_memory
         response = request_json(
             model["base_url"],
             "/generate",
@@ -207,7 +227,7 @@ class MLXDGemmaSampler:
 class MLXDGemmaLongSampler:
     DESCRIPTION = (
         "Runs bounded long-form generation through the MLX DiffusionGemma sidecar "
-        "and returns aggregate text plus per-segment state."
+        "with optional REG denoising-time logit guidance."
     )
 
     @classmethod
@@ -287,7 +307,10 @@ class MLXDGemmaLongSampler:
                     "INT",
                     {"default": 21600, "min": 5, "max": 21600},
                 ),
-            }
+            },
+            "optional": {
+                "reg_control_memory": (MLX_DGEMMA_REG_CONTROL_MEMORY,),
+            },
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
@@ -319,11 +342,13 @@ class MLXDGemmaLongSampler:
         retry_seed_stride: int,
         thinking: bool,
         timeout_seconds: int,
+        reg_control_memory: Any | None = None,
     ):
         if not prompt.strip():
             raise ValueError("prompt must not be empty")
         if not 1024 <= segment_tokens <= 2048:
             raise ValueError("segment_tokens must be between 1024 and 2048")
+        serialized_reg_control_memory = _serialize_reg_control_memory(reg_control_memory)
         payload = {
             "prompt": prompt,
             "seed": seed,
@@ -344,6 +369,8 @@ class MLXDGemmaLongSampler:
             "retry_seed_stride": retry_seed_stride,
             "thinking": thinking,
         }
+        if serialized_reg_control_memory is not None:
+            payload["reg_control_memory"] = serialized_reg_control_memory
         response = request_json(
             model["base_url"],
             "/generate-long",

@@ -97,8 +97,14 @@ Sends one generation request to the configured MLX runtime.
 | `hidden_layers` | `0,9,19,29` | Comma-separated decoder layers to capture |
 | `sampler` | `entropy-bound` | `entropy-bound` or `confidence-threshold` |
 | `timeout_seconds` | `600` | Generation request timeout |
+| `reg_control_memory` | Optional | Native REG control-memory object for denoising-time logit guidance; it does not modify the prompt |
 
 `hidden_layers` accepts unique layer numbers from 0 through 29. The node sorts the selected layers before it sends the request.
+
+When `reg_control_memory` is connected, the sampler forwards it to the local
+runtime as a separate conditioning payload. `REGStrength = 0` is an exact
+no-guidance request. The runtime must support the `reg-control-memory/v2`
+schema.
 
 Outputs:
 
