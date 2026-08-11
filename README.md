@@ -131,8 +131,12 @@ Outputs:
 | --- | --- | --- |
 | `text` | `STRING` | Aggregate generated text |
 | `summary` | `STRING` | Final bounded summary |
+
 | `segments` | `STRING` list | Text from each generated segment |
 | `metadata_json` | `STRING` | Segment states, retry details, and runtime metadata |
+
+The long sampler also accepts the optional `reg_control_memory` input and
+forwards it as the same separate denoising-time guidance payload.
 
 Long requests use `/generate-long` and force trace and frame capture off. Use
 the segment outputs and metadata for long runs rather than the single-request
