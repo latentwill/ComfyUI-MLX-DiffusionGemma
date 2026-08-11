@@ -1,0 +1,46 @@
+{
+  "1": {
+    "class_type": "MLXDGemmaLoader",
+    "inputs": {
+      "base_url": "http://127.0.0.1:8080",
+      "model": "mlx-community/diffusiongemma-26B-A4B-it-4bit",
+      "timeout_seconds": 10
+    }
+  },
+  "2": {
+    "class_type": "MLXDGemmaSampler",
+    "inputs": {
+      "model": ["1", 0],
+      "prompt": "Write a detailed, well-structured response to the user's prompt. Preserve all relevant context, use clear headings when helpful, and complete the response in one pass.",
+      "seed": 0,
+      "num_inference_steps": 48,
+      "t_min": 0.4,
+      "t_max": 0.8,
+      "entropy_bound": 0.1,
+      "confidence": 0.005,
+      "gen_length": 2048,
+      "thinking": false,
+      "hidden_layers": "0,9,19,29",
+      "sampler": "entropy-bound",
+      "timeout_seconds": 3600
+    }
+  },
+  "3": {
+    "class_type": "MLXDGemmaTrace",
+    "inputs": {
+      "trace": ["2", 2],
+      "layer": 19,
+      "scale": 2
+    }
+  },
+  "4": {
+    "class_type": "MLXDGemmaRunLogWriter",
+    "inputs": {
+      "text": ["2", 0],
+      "canvas_state": ["2", 1],
+      "canvas_trace": ["2", 2],
+      "run_metadata": ["2", 4],
+      "filename_prefix": "mlx_diffusiongemma_long_context"
+    }
+  }
+}
