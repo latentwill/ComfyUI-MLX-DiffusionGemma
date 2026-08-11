@@ -197,11 +197,33 @@ class MLXDGemmaSampler:
         }
 
 
+class MLXDGemmaTextDisplay:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {"multiline": True, "default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("text",)
+    FUNCTION = "display"
+    CATEGORY = "DiffusionGemma/MLX"
+    OUTPUT_NODE = True
+
+    def display(self, text: str):
+        return {"ui": {"text": [text]}, "result": (text,)}
+
+
+
+
 NODE_CLASS_MAPPINGS = {
     "MLXDGemmaLoader": MLXDGemmaLoader,
     "MLXDGemmaSampler": MLXDGemmaSampler,
     "MLXDGemmaTrace": MLXDGemmaTrace,
     "MLXDGemmaRunLogWriter": MLXDGemmaRunLogWriter,
+    "MLXDGemmaTextDisplay": MLXDGemmaTextDisplay,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -209,4 +231,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "MLXDGemmaSampler": "MLX DiffusionGemma Sampler",
     "MLXDGemmaTrace": "MLX DiffusionGemma Trace",
     "MLXDGemmaRunLogWriter": "MLX DiffusionGemma Run Log Writer",
+    "MLXDGemmaTextDisplay": "MLX DiffusionGemma Text Display",
 }

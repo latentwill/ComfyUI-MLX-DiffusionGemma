@@ -41,9 +41,9 @@ MLX DiffusionGemma Loader
             │
             ▼
 MLX DiffusionGemma Sampler
-       │             │
-       ▼             ▼
-MLX DiffusionGemma Trace    MLX DiffusionGemma Run Log Writer
+       │         │          │
+       ▼         ▼          ▼
+    Trace    Run Log    Text Display
 ```
 
 1. Add **MLX DiffusionGemma Loader**.
@@ -52,8 +52,9 @@ MLX DiffusionGemma Trace    MLX DiffusionGemma Run Log Writer
 4. Connect the loader output to **MLX DiffusionGemma Sampler**.
 5. Enter a prompt and configure the generation values.
 6. Queue the workflow.
-7. Optionally connect `canvas_trace` to **MLX DiffusionGemma Trace**.
-8. Optionally connect `text`, `canvas_state`, `canvas_trace`, and `run_metadata` to **MLX DiffusionGemma Run Log Writer**.
+7. Optionally connect `text` to **MLX DiffusionGemma Text Display** to read the response in ComfyUI.
+8. Optionally connect `canvas_trace` to **MLX DiffusionGemma Trace**.
+9. Optionally connect `text`, `canvas_state`, `canvas_trace`, and `run_metadata` to **MLX DiffusionGemma Run Log Writer**.
 
 ## Nodes
 
@@ -99,6 +100,12 @@ Outputs:
 | `canvas_trace` | `MLX_DGEMMA_TRACE` | Generation response and hidden-layer trace |
 | `frames` | `STRING` list | Intermediate decoded denoising frames |
 | `run_metadata` | `MLX_DGEMMA_RUN_METADATA` | Request, runtime, model, schema, and consistency data |
+
+### MLX DiffusionGemma Text Display
+
+Displays the sampler's final `text` output in the ComfyUI interface. Connect the Sampler `text` output to this node and queue the workflow.
+
+The node also passes the same text through as a `STRING` output.
 
 ### MLX DiffusionGemma Trace
 

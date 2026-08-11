@@ -1,8 +1,8 @@
 {
   "id": "d9b2ef88-6d2a-49f1-9f66-2e2bd7e2fdb9",
   "revision": 0,
-  "last_node_id": 4,
-  "last_link_id": 6,
+  "last_node_id": 5,
+  "last_link_id": 7,
   "nodes": [
     {
       "id": 1,
@@ -31,7 +31,7 @@
       "mode": 0,
       "inputs": [{"name": "model", "type": "MLX_DGEMMA_MODEL", "link": 1}],
       "outputs": [
-        {"name": "text", "type": "STRING", "links": [3]},
+        {"name": "text", "type": "STRING", "links": [3, 7]},
         {"name": "canvas_state", "type": "MLX_DGEMMA_CANVAS_STATE", "links": [4]},
         {"name": "canvas_trace", "type": "MLX_DGEMMA_TRACE", "links": [2, 5]},
         {"name": "frames", "type": "STRING", "links": null, "shape": 6},
@@ -86,6 +86,19 @@
       "outputs": [{"name": "artifact_path", "type": "STRING", "links": null}],
       "properties": {"Node name for S&R": "MLXDGemmaRunLogWriter"},
       "widgets_values": ["", "mlx_diffusiongemma_long_context"]
+    },
+    {
+      "id": 5,
+      "type": "MLXDGemmaTextDisplay",
+      "pos": [1140, 660],
+      "size": [520, 300],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [{"name": "text", "type": "STRING", "link": 7}],
+      "outputs": [{"name": "text", "type": "STRING", "links": null}],
+      "properties": {"Node name for S&R": "MLXDGemmaTextDisplay"},
+      "widgets_values": [""]
     }
   ],
   "links": [
@@ -94,7 +107,8 @@
     [3, 2, 0, 4, 0, "STRING"],
     [4, 2, 1, 4, 1, "MLX_DGEMMA_CANVAS_STATE"],
     [5, 2, 2, 4, 2, "MLX_DGEMMA_TRACE"],
-    [6, 2, 4, 4, 3, "MLX_DGEMMA_RUN_METADATA"]
+    [6, 2, 4, 4, 3, "MLX_DGEMMA_RUN_METADATA"],
+    [7, 2, 0, 5, 0, "STRING"]
   ],
   "groups": [],
   "config": {},
