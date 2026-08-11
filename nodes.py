@@ -85,7 +85,12 @@ class MLXDGemmaSampler:
                 "prompt": ("STRING", {"multiline": True, "default": ""}),
                 "seed": (
                     "INT",
-                    {"default": 0, "min": 0, "max": 0xFFFFFFFFFFFFFFFF},
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "control_after_generate": True,
+                    },
                 ),
                 "num_inference_steps": (
                     "INT",

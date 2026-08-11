@@ -41,6 +41,7 @@
       "widgets_values": [
         "Write a detailed, well-structured response to the user's prompt. Preserve all relevant context, use clear headings when helpful, and complete the response in one pass.",
         0,
+        "fixed",
         48,
         0.4,
         0.8,
