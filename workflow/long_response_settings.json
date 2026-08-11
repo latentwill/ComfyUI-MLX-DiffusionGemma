@@ -1,15 +1,22 @@
 {
-  "description": "Settings for longer ComfyUI responses",
-  "sampler": {
+  "description": "Defaults for bounded long ComfyUI responses",
+  "long_sampler": {
+    "target_tokens": 8192,
+    "segment_tokens": 1536,
+    "summary_tokens": 256,
+    "max_segments": 8,
     "num_inference_steps": 48,
     "t_min": 0.4,
     "t_max": 0.8,
     "entropy_bound": 0.1,
     "confidence": 0.005,
-    "gen_length": 8192,
+    "temperature": 0.2,
+    "repetition_penalty": 1.0,
+    "repetition_context_size": 2048,
+    "repetition_guard": true,
+    "max_retries": 2,
+    "retry_seed_stride": 1,
     "thinking": false,
-    "hidden_layers": "0,9,19,29",
-    "sampler": "entropy-bound",
     "timeout_seconds": 21600
   },
   "loader": {
@@ -18,8 +25,8 @@
     "timeout_seconds": 10
   },
   "notes": [
-    "Use a prompt that asks for one complete response with clear structure.",
-    "Increase timeout_seconds only when the workflow needs more runtime.",
-    "Keep gen_length at or below the node maximum of 8192."
+    "Connect the Loader to MLX DiffusionGemma Long Sampler.",
+    "Connect text and summary to separate PreviewAny nodes.",
+    "segment_tokens must stay between 1024 and 2048."
   ]
 }

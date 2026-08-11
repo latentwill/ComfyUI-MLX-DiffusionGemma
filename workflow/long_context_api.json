@@ -8,39 +8,36 @@
     }
   },
   "2": {
-    "class_type": "MLXDGemmaSampler",
+    "class_type": "MLXDGemmaLongSampler",
     "inputs": {
       "model": ["1", 0],
       "prompt": "Write a detailed, well-structured response to the user's prompt. Preserve all relevant context, use clear headings when helpful, and complete the response in one pass.",
       "seed": 0,
+      "target_tokens": 8192,
+      "segment_tokens": 1536,
+      "summary_tokens": 256,
+      "max_segments": 8,
       "num_inference_steps": 48,
       "t_min": 0.4,
       "t_max": 0.8,
       "entropy_bound": 0.1,
       "confidence": 0.005,
-      "gen_length": 8192,
+      "temperature": 0.2,
+      "repetition_penalty": 1.0,
+      "repetition_context_size": 2048,
+      "repetition_guard": true,
+      "max_retries": 2,
+      "retry_seed_stride": 1,
       "thinking": false,
-      "hidden_layers": "0,9,19,29",
-      "sampler": "entropy-bound",
       "timeout_seconds": 21600
     }
   },
   "3": {
-    "class_type": "MLXDGemmaTrace",
-    "inputs": {
-      "trace": ["2", 2],
-      "layer": 19,
-      "scale": 2
-    }
+    "class_type": "PreviewAny",
+    "inputs": {"source": ["2", 0]}
   },
   "4": {
-    "class_type": "MLXDGemmaRunLogWriter",
-    "inputs": {
-      "text": ["2", 0],
-      "canvas_state": ["2", 1],
-      "canvas_trace": ["2", 2],
-      "run_metadata": ["2", 4],
-      "filename_prefix": "mlx_diffusiongemma_long_context"
-    }
+    "class_type": "PreviewAny",
+    "inputs": {"source": ["2", 1]}
   }
 }

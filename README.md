@@ -1,6 +1,6 @@
 # ComfyUI MLX DiffusionGemma
 
-Four ComfyUI nodes for running MLX DiffusionGemma workflows. Generate text, inspect intermediate frames, render hidden-layer activity, and save complete run logs.
+Five ComfyUI nodes for MLX DiffusionGemma workflows. Generate single-request text, generate bounded long responses, inspect intermediate frames, render hidden-layer activity, and save single-request run logs.
 
 Install the nodes in ComfyUI, connect them in a workflow, and queue the workflow.
 
@@ -34,28 +34,37 @@ The nodes do not add Python package requirements. They use the Python standard l
 
 ## Basic workflow
 
-Add and connect these nodes:
+For one request, add and connect these nodes:
 
 ```text
 MLX DiffusionGemma Loader
             │
             ▼
-MLX DiffusionGemma Sampler
-       │         │          │
-       ▼         ▼          ▼
-    Trace    Run Log    Preview Text
+MLX DiffusionGemma Sampler ──► Preview Text
 ```
 
-1. Add **MLX DiffusionGemma Loader**.
-2. Set `base_url` to the URL of your local MLX runtime.
-3. Set `model` to the model ID configured in that runtime.
-4. Connect the loader output to **MLX DiffusionGemma Sampler**.
-5. Enter a prompt and configure the generation values.
-6. Queue the workflow.
-7. Optionally connect `text` to **Preview as Text** (`PreviewAny`) to read the response in ComfyUI.
-8. Optionally connect `canvas_trace` to **MLX DiffusionGemma Trace**.
-9. Optionally connect `text`, `canvas_state`, `canvas_trace`, and `run_metadata` to **MLX DiffusionGemma Run Log Writer**.
+1. Add **MLX DiffusionGemma Loader** and set its local runtime URL and model.
+2. Connect the loader output to **MLX DiffusionGemma Sampler**.
+3. Enter a prompt, configure the generation values, and queue the workflow.
+4. Optionally connect the sampler trace outputs to **MLX DiffusionGemma Trace** and its single-request outputs to **MLX DiffusionGemma Run Log Writer**.
 
+## Long response workflow
+
+Use **MLX DiffusionGemma Long Sampler** for a bounded response assembled from
+multiple segments:
+
+```text
+MLX DiffusionGemma Loader
+            │
+            ▼
+MLX DiffusionGemma Long Sampler ──► Preview Text
+                                └─► Preview Summary
+```
+
+The long sampler sends `POST /generate-long` and returns aggregate text, a
+bounded rolling summary, a list of segment text values, and JSON segment
+metadata. It deliberately does not expose the single-request trace or run-log
+outputs because those artefacts do not aggregate across segments.
 ## Nodes
 
 ### MLX DiffusionGemma Loader
@@ -100,6 +109,28 @@ Outputs:
 | `canvas_trace` | `MLX_DGEMMA_TRACE` | Generation response and hidden-layer trace |
 | `frames` | `STRING` list | Intermediate decoded denoising frames |
 | `run_metadata` | `MLX_DGEMMA_RUN_METADATA` | Request, runtime, model, schema, and consistency data |
+
+### MLX DiffusionGemma Long Sampler
+
+Sends one bounded long-form request to the local runtime. The defaults are
+`target_tokens=8192`, `segment_tokens=1536`, `summary_tokens=256`, and
+`max_segments=8`; `segment_tokens` accepts values from 1024 through 2048.
+The node also exposes the official denoising controls, temperature, repetition
+guard settings, retry settings, thinking mode, and a timeout (21600 seconds
+by default).
+
+Outputs:
+
+| Output | Type | Contents |
+| --- | --- | --- |
+| `text` | `STRING` | Aggregate generated text |
+| `summary` | `STRING` | Final bounded summary |
+| `segments` | `STRING` list | Text from each generated segment |
+| `metadata_json` | `STRING` | Segment states, retry details, and runtime metadata |
+
+Long requests use `/generate-long` and force trace and frame capture off. Use
+the segment outputs and metadata for long runs rather than the single-request
+trace or run-log nodes.
 
 ### Preview as Text
 

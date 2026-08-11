@@ -21,7 +21,9 @@ def _parse_hidden_layers(value: str) -> list[int]:
     try:
         layers = [int(part.strip()) for part in value.split(",") if part.strip()]
     except ValueError as exc:
-        raise ValueError("hidden_layers must be a comma-separated list of integers") from exc
+        raise ValueError(
+            "hidden_layers must be a comma-separated list of integers"
+        ) from exc
     if len(set(layers)) != len(layers):
         raise ValueError("hidden_layers must not contain duplicates")
     if any(layer < 0 or layer > 29 for layer in layers):
@@ -202,12 +204,177 @@ class MLXDGemmaSampler:
         }
 
 
+class MLXDGemmaLongSampler:
+    DESCRIPTION = (
+        "Runs bounded long-form generation through the MLX DiffusionGemma sidecar "
+        "and returns aggregate text plus per-segment state."
+    )
 
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "model": (MLX_DGEMMA_MODEL,),
+                "prompt": ("STRING", {"multiline": True, "default": ""}),
+                "seed": (
+                    "INT",
+                    {
+                        "default": 0,
+                        "min": 0,
+                        "max": 0xFFFFFFFFFFFFFFFF,
+                        "control_after_generate": True,
+                    },
+                ),
+                "target_tokens": (
+                    "INT",
+                    {"default": 8192, "min": 1, "max": 65536},
+                ),
+                "segment_tokens": (
+                    "INT",
+                    {"default": 1536, "min": 1024, "max": 2048},
+                ),
+                "summary_tokens": (
+                    "INT",
+                    {"default": 256, "min": 1, "max": 2048},
+                ),
+                "max_segments": (
+                    "INT",
+                    {"default": 8, "min": 1, "max": 64},
+                ),
+                "num_inference_steps": (
+                    "INT",
+                    {"default": 48, "min": 1, "max": 256},
+                ),
+                "t_min": (
+                    "FLOAT",
+                    {"default": 0.4, "min": 0.0, "max": 2.0, "step": 0.01},
+                ),
+                "t_max": (
+                    "FLOAT",
+                    {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.01},
+                ),
+                "entropy_bound": (
+                    "FLOAT",
+                    {"default": 0.1, "min": 0.0, "max": 100.0, "step": 0.001},
+                ),
+                "confidence": (
+                    "FLOAT",
+                    {"default": 0.005, "min": 0.0, "max": 1.0, "step": 0.001},
+                ),
+                "temperature": (
+                    "FLOAT",
+                    {"default": 0.2, "min": 0.0, "max": 2.0, "step": 0.01},
+                ),
+                "repetition_penalty": (
+                    "FLOAT",
+                    {"default": 1.0, "min": 1.0, "max": 2.0, "step": 0.01},
+                ),
+                "repetition_context_size": (
+                    "INT",
+                    {"default": 2048, "min": 1, "max": 65536},
+                ),
+                "repetition_guard": ("BOOLEAN", {"default": True}),
+                "max_retries": (
+                    "INT",
+                    {"default": 2, "min": 0, "max": 16},
+                ),
+                "retry_seed_stride": (
+                    "INT",
+                    {"default": 1, "min": 1, "max": 0xFFFFFFFFFFFFFFFF},
+                ),
+                "thinking": ("BOOLEAN", {"default": False}),
+                "timeout_seconds": (
+                    "INT",
+                    {"default": 21600, "min": 5, "max": 21600},
+                ),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("text", "summary", "segments", "metadata_json")
+    OUTPUT_IS_LIST = (False, False, True, False)
+    FUNCTION = "sample"
+    CATEGORY = "DiffusionGemma/MLX"
+    OUTPUT_NODE = True
+
+    def sample(
+        self,
+        model: dict[str, Any],
+        prompt: str,
+        seed: int,
+        target_tokens: int,
+        segment_tokens: int,
+        summary_tokens: int,
+        max_segments: int,
+        num_inference_steps: int,
+        t_min: float,
+        t_max: float,
+        entropy_bound: float,
+        confidence: float,
+        temperature: float,
+        repetition_penalty: float,
+        repetition_context_size: int,
+        repetition_guard: bool,
+        max_retries: int,
+        retry_seed_stride: int,
+        thinking: bool,
+        timeout_seconds: int,
+    ):
+        if not prompt.strip():
+            raise ValueError("prompt must not be empty")
+        if not 1024 <= segment_tokens <= 2048:
+            raise ValueError("segment_tokens must be between 1024 and 2048")
+        payload = {
+            "prompt": prompt,
+            "seed": seed,
+            "target_tokens": target_tokens,
+            "segment_tokens": segment_tokens,
+            "summary_tokens": summary_tokens,
+            "max_segments": max_segments,
+            "num_inference_steps": num_inference_steps,
+            "t_min": t_min,
+            "t_max": t_max,
+            "entropy_bound": entropy_bound,
+            "confidence": confidence,
+            "temperature": temperature,
+            "repetition_penalty": repetition_penalty,
+            "repetition_context_size": repetition_context_size,
+            "repetition_guard": repetition_guard,
+            "max_retries": max_retries,
+            "retry_seed_stride": retry_seed_stride,
+            "thinking": thinking,
+        }
+        response = request_json(
+            model["base_url"],
+            "/generate-long",
+            payload=payload,
+            timeout_seconds=timeout_seconds,
+        )
+        if response.get("model") != model["model"]:
+            raise RuntimeError("MLX sidecar returned an unexpected model ID")
+
+        text = response["text"]
+        summary = response["summary"]
+        segments = [segment["text"] for segment in response.get("segments", [])]
+        metadata = dict(response)
+        metadata.pop("text", None)
+        metadata.pop("summary", None)
+        metadata_json = json.dumps(metadata, sort_keys=True)
+        return {
+            "ui": {
+                "text": [text],
+                "summary": [summary],
+                "segments": segments,
+                "metadata_json": [metadata_json],
+            },
+            "result": (text, summary, segments, metadata_json),
+        }
 
 
 NODE_CLASS_MAPPINGS = {
     "MLXDGemmaLoader": MLXDGemmaLoader,
     "MLXDGemmaSampler": MLXDGemmaSampler,
+    "MLXDGemmaLongSampler": MLXDGemmaLongSampler,
     "MLXDGemmaTrace": MLXDGemmaTrace,
     "MLXDGemmaRunLogWriter": MLXDGemmaRunLogWriter,
 }
@@ -215,6 +382,7 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "MLXDGemmaLoader": "MLX DiffusionGemma Loader",
     "MLXDGemmaSampler": "MLX DiffusionGemma Sampler",
+    "MLXDGemmaLongSampler": "MLX DiffusionGemma Long Sampler",
     "MLXDGemmaTrace": "MLX DiffusionGemma Trace",
     "MLXDGemmaRunLogWriter": "MLX DiffusionGemma Run Log Writer",
 }
