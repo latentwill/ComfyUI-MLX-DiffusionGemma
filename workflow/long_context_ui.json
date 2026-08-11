@@ -90,16 +90,35 @@
     },
     {
       "id": 5,
-      "type": "MLXDGemmaTextDisplay",
+      "type": "PreviewAny",
       "pos": [1140, 660],
       "size": [520, 300],
       "flags": {},
       "order": 4,
       "mode": 0,
-      "inputs": [{"name": "text", "type": "STRING", "link": 7}],
-      "outputs": [{"name": "text", "type": "STRING", "links": null}],
-      "properties": {"Node name for S&R": "MLXDGemmaTextDisplay"},
-      "widgets_values": [""]
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "type": "*",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "title": "Preview Text",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.31.1",
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [null, null, null]
     }
   ],
   "links": [
