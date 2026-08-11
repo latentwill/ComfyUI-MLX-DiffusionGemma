@@ -131,7 +131,6 @@ Outputs:
 | --- | --- | --- |
 | `text` | `STRING` | Aggregate generated text |
 | `summary` | `STRING` | Final bounded summary |
-
 | `segments` | `STRING` list | Text from each generated segment |
 | `metadata_json` | `STRING` | Segment states, retry details, and runtime metadata |
 
