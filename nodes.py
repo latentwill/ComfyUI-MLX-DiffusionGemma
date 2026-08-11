@@ -109,14 +109,14 @@ class MLXDGemmaSampler:
                 ),
                 "gen_length": (
                     "INT",
-                    {"default": 128, "min": 1, "max": 2048},
+                    {"default": 128, "min": 1, "max": 8192},
                 ),
                 "thinking": ("BOOLEAN", {"default": False}),
                 "hidden_layers": ("STRING", {"default": "0,9,19,29"}),
                 "sampler": (["entropy-bound", "confidence-threshold"],),
                 "timeout_seconds": (
                     "INT",
-                    {"default": 600, "min": 5, "max": 3600},
+                    {"default": 600, "min": 5, "max": 21600},
                 ),
             }
         }

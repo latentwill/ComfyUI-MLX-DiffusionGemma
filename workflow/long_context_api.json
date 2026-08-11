@@ -18,11 +18,11 @@
       "t_max": 0.8,
       "entropy_bound": 0.1,
       "confidence": 0.005,
-      "gen_length": 2048,
+      "gen_length": 8192,
       "thinking": false,
       "hidden_layers": "0,9,19,29",
       "sampler": "entropy-bound",
-      "timeout_seconds": 3600
+      "timeout_seconds": 21600
     }
   },
   "3": {

@@ -148,4 +148,4 @@ Add the layer number to the Sampler `hidden_layers` input, queue the workflow ag
 
 ### Generation request times out
 
-Increase the Sampler `timeout_seconds` value. The allowed range is 5 to 3600 seconds.
+Increase the Sampler `timeout_seconds` value. The allowed range is 5 to 21600 seconds.
